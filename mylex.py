@@ -11,12 +11,16 @@ import  logging
 
 error=[]
 tempchar=[]
+result=[]
 def tape_reader(line,current_state,index,line_num):
     logging.info("tape reader called :parameter:line:"+str(line)+"   current_state:"+str(current_state)+"     index:"+str(index)+"     line_num:"+str(line_num))
     index+=1
     if index==len(line):
         logging.info("到达行尾")
         # end of line
+        if len(tempchar)>0:
+            error.append({"description":''.join(tempchar)+"错误，到达行尾前未结束","line":line_num})
+        tempchar.clear()
         return STATE_START
     logging.info("tape reader is reading character :"+line[index])
 
@@ -40,6 +44,7 @@ def tape_reader(line,current_state,index,line_num):
             return STATE_SINGLEQUOTE_1
         if ch in SINGLE_DELIMITER:
             print(ch+" 单界符 line:"+str(line_num))
+            result.append({"token":ch,"description":"单界符","line":line_num})
             tempchar.clear()
             return STATE_START
         if ch.isspace():
@@ -61,6 +66,7 @@ def tape_reader(line,current_state,index,line_num):
         return change_digit_state(line,index,line_num,current_state)
     if current_state ==STATE_SIGN:
         if line[index-1] in ['>','<','!'] and line[index]=='=':
+            result.append({"token":line[line-1:line+1],"description":"双界符","line":line_num})
             print(str(line[line-1:line+1])+" 双界符 "+str(line_num))
             tempchar.clear()
         else:
@@ -79,8 +85,12 @@ def change_id_state(line,index,line_num,current_state):
         return STATE_ID_1
     elif line[index].isspace():
         if ''.join(tempchar).strip() in KEYWORD:
+            result.append({"token":''.join(tempchar),"description":"关键字","line":line_num})
+
             print(''.join(tempchar)+" keyword "+" line:"+str(line_num))
         else:
+            result.append({"token":''.join(tempchar),"description":"ID","line":line_num})
+
             print(''.join(tempchar)+" id "+" line:"+str(line_num))
         tempchar.clear()
         return refresh(line[index],line_num)
@@ -93,22 +103,30 @@ def change_literal_state(line,index,line_num,current_state):
 
     ch=line[index]
     if current_state==STATE_LITERAL_1:
-        if ch!="\\" and ch!="\"":
+        if ch!="\"":
             tempchar.append(ch)
             return STATE_LITERAL_1
-        if ch=="\\":
-            tempchar.append('\\')
-            return STATE_LITERAL_2
+        # if ch=="\\":
+        #     tempchar.append('\\')
+            # return STATE_LITERAL_2
         if ch=='"':
             tempchar.append('"')
+            result.append({"token":''.join(tempchar),"description":"双引号字符串","line":line_num})
+
             print(''.join(tempchar)+" literal line:"+str(line_num))
             tempchar.clear()
             return STATE_LITERAL_3
+        # 非法字符
+        error.append({"description":''.join(tempchar)+"字符串非法，不已双引号作为结尾","line":line_num})
+        tempchar.clear()
+
+        return STATE_START
     if current_state==STATE_LITERAL_2:
         if ch.isalnum():
             tempchar.append(ch)
             return  STATE_LITERAL_1
         else:
+            error.append({"description":"\\后面的非法字符"})
             print("error in line"+str(line_num)+" \\后面的非法字符")
             tempchar.clear()
             return STATE_START
@@ -132,6 +150,8 @@ def change_singlequote_state(line,index,line_num,current_state):
             return STATE_LITERAL_2
         if ch=="'":
             tempchar.append("'")
+            result.append({"token":''.join(tempchar),"description":"单引号字符串","line":line_num})
+
             print(''.join(tempchar)+" literal line:"+str(line_num))
             tempchar.clear()
             return STATE_LITERAL_3
@@ -140,6 +160,7 @@ def change_singlequote_state(line,index,line_num,current_state):
             tempchar.append(ch)
             return  STATE_LITERAL_1
         else:
+            error.append({"description":"error in line"+str(line_num)+" \\后面的非法字符","line":line_num})
             print("error in line"+str(line_num)+" \\后面的非法字符")
             tempchar.clear()
             return STATE_END
@@ -161,6 +182,8 @@ def change_digit_state(line,index,line_num,current_state):
             return STATE_DIGIT_3
         else:
             tempchar.append(ch)
+            result.append({"token":''.join(tempchar),"description":"十进制数字或小数","line":line_num})
+
             print(''.join(tempchar)+"   数字  line: "+str(line_num))
             return refresh(ch,line_num)
     if current_state==STATE_DIGIT_2:
@@ -172,6 +195,8 @@ def change_digit_state(line,index,line_num,current_state):
             return STATE_DIGIT_3
         else:
             # tempchar.append(ch)
+            result.append({"token":''.join(tempchar),"description":"十进制数字或小数","line":line_num})
+
             print(''.join(tempchar)+"   数字  line: "+str(line_num))
             return refresh(ch,line_num)
     if current_state==STATE_DIGIT_3:
@@ -180,6 +205,8 @@ def change_digit_state(line,index,line_num,current_state):
             return STATE_DIGIT_3
         else:
             tempchar.append(ch)
+            result.append({"token":''.join(tempchar),"description":"十进制数字或小数","line":line_num})
+
             print(''.join(tempchar)+"   数字  line: "+str(line_num))
             return refresh(ch,line_num)
 
@@ -193,7 +220,9 @@ def change_note_state(line,index,line_num,current_state):
             tempchar.append('*')
             return STATE_NOTE_2
         else:
+            result.append({"token":"/","description":"除号","line":line_num})
             print("/ 除号 line:"+str(line_num))
+            return refresh(ch,line_num)
     if current_state==STATE_NOTE_2:
         if ch!='*':
             tempchar.append(ch)
@@ -207,10 +236,13 @@ def change_note_state(line,index,line_num,current_state):
 
             return STATE_NOTE_4
         else:
+            error.append({"description":"error 注释格式错误","line":line_num})
             print("error 注释格式错误，line："+str(line_num))
             return STATE_END
     if current_state==STATE_NOTE_4:
         tempchar.append(ch)
+        result.append({"token":''.join(tempchar),"description":"注释","line":line_num})
+
         print(''.join(tempchar)+" 注释 line："+str(line_num))
         refresh(ch,line_num)
 
@@ -234,6 +266,8 @@ def refresh(ch, line_num):
     if ch == "'":
         return STATE_SINGLEQUOTE_1
     if ch in SINGLE_DELIMITER:
+        result.append({"token":ch,"description":"单界符","line":line_num})
+
         print(ch+"  singlequote line:" + str(line_num))
         tempchar.clear()
         return STATE_START
@@ -255,6 +289,9 @@ def main():
         while index!=len(line):
             current_state=tape_reader(line,current_state,index,line_num)
             index+=1
+    for r in result:
+        print(r)
+    print(error)
 
 
 
