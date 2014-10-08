@@ -1,0 +1,2 @@
+10:21:02 [line:18] INFO tape reader called :parameter:line:int a = 10;
+   current_state:100     index:-1     line_num:1

@@ -1,0 +1,90 @@
+KEYWORD = ["auto",
+           "break",
+           "case",
+           "char",
+           "const",
+           "continue",
+           "default",
+           "do",
+           "double",
+           "else",
+           "if",
+           "enum",
+           "extern",
+           "float",
+           "for",
+           "for",
+           "goto",
+           "goto",
+           "if",
+           "if",
+           "int",
+           "long",
+           "registerCPU",
+           "return",
+           "short",
+           "signed",
+           "sizoef",
+           "static",
+           "struct",
+           "switch",
+           "switch",
+           "typedef",
+           "union",
+           "unsigned",
+           "void",
+           "volatile",
+           "while",
+           "do"]
+SINGLE_DELIMITER = ["+",
+                    "-",
+                    "*",
+                    "/",
+                    "!",
+                    "#",
+                    "%",
+                    "&",
+                    "(",
+                    ")",
+                    "{",
+                    "}",
+                    "|",
+                    '"',
+                    "<",
+                    ">"
+        "'",
+                    ".",
+                    "="
+]
+DOUBLE_DELIMITER=[
+">=",
+"<=",
+"!="
+]
+STATE_START=100
+# STATE_ID_1=101
+STATE_ID_1=102
+# STATE_NOTE_0=102
+STATE_NOTE_1=103
+STATE_NOTE_2=104
+STATE_NOTE_3=105
+STATE_NOTE_4=106
+# STATE_SINGLEQUOTE_0=107
+STATE_SINGLEQUOTE_1=108
+STATE_SINGLEQUOTE_2=109
+STATE_SINGLEQUOTE_3=110
+STATE_LITERAL_1=111
+STATE_LITERAL_2=112
+STATE_LITERAL_3=113
+STATE_DIGIT_1=114
+STATE_DIGIT_2=115
+STATE_DIGIT_3=116
+STATE_DIGIT_4=117
+STATE_SIGN=118
+STATE_END=[STATE_DIGIT_1,STATE_DIGIT_2,STATE_DIGIT_3,STATE_LITERAL_3,STATE_ID_1,STATE_SINGLEQUOTE_3]
+GROUP_ID=[STATE_ID_1]
+GROUP_NOTE=[STATE_NOTE_1,STATE_NOTE_2,STATE_NOTE_3,STATE_NOTE_4]
+GROUP_LITERAL=[STATE_LITERAL_1,STATE_LITERAL_2,STATE_LITERAL_3]
+GROUP_SINGLEQUOTE=[STATE_SINGLEQUOTE_1,STATE_SINGLEQUOTE_2,STATE_SINGLEQUOTE_3]
+GROUP_DIGIT=[STATE_DIGIT_1,STATE_DIGIT_2,STATE_DIGIT_3,STATE_DIGIT_4]
+STATE_REAL_END=119
