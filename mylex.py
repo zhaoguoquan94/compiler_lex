@@ -3,29 +3,29 @@ import sys
 import os
 from Constant import *
 import  logging
-logging.basicConfig(level=logging.DEBUG,
-                format='%(asctime)s [line:%(lineno)d] %(levelname)s %(message)s',
-                datefmt='%H:%M:%S'
-                )
+# logging.basicConfig(level=logging.DEBUG,
+#                 format='%(asctime)s [line:%(lineno)d] %(levelname)s %(message)s',
+#                 datefmt='%H:%M:%S'
+#                 )
 
 
 error=[]
 tempchar=[]
-current_state=STATE_START
 def tape_reader(line,current_state,index,line_num):
     logging.info("tape reader called :parameter:line:"+str(line)+"   current_state:"+str(current_state)+"     index:"+str(index)+"     line_num:"+str(line_num))
     index+=1
-    logging.info("tape reader is reading character :"+line[index])
     if index==len(line):
         logging.info("到达行尾")
         # end of line
-        return STATE_END
+        return STATE_START
+    logging.info("tape reader is reading character :"+line[index])
+
     if current_state==STATE_START :
         logging.info("分配起始状态")
         ch=line[index]
         tempchar.append(ch)
 
-        if ch.isalpha():
+        if ch.isalpha()or ch=="_":
             return STATE_ID_1
         if ch=="/":
 
@@ -43,21 +43,22 @@ def tape_reader(line,current_state,index,line_num):
             tempchar.clear()
             return STATE_START
         if ch.isspace():
+            tempchar.clear()
             return STATE_START
 
 
 
 
     if current_state in GROUP_ID:
-        return change_id_state(line,index,line_num)
+        return change_id_state(line,index,line_num,current_state)
     if current_state in GROUP_LITERAL:
-        return change_literal_state(line,index,line_num)
+        return change_literal_state(line,index,line_num,current_state)
     if current_state in GROUP_NOTE:
-        return change_note_state(line,index,line_num)
+        return change_note_state(line,index,line_num,current_state)
     if current_state in GROUP_SINGLEQUOTE:
-        return change_singlequote_state(line,index,line_num)
+        return change_singlequote_state(line,index,line_num,current_state)
     if current_state in GROUP_DIGIT:
-        return change_digit_state(line,index,line_num)
+        return change_digit_state(line,index,line_num,current_state)
     if current_state ==STATE_SIGN:
         if line[index-1] in ['>','<','!'] and line[index]=='=':
             print(str(line[line-1:line+1])+" 双界符 "+str(line_num))
@@ -71,13 +72,13 @@ def tape_reader(line,current_state,index,line_num):
 
 
 
-def change_id_state(line,index,line_num):
+def change_id_state(line,index,line_num,current_state):
     logging.info("change_id_state called    line:"+str(line).strip()+"  index:"+str(index)+"    line_num:"+str(line_num))
-    if line[index].isalnum():
+    if line[index].isalnum() or line[index]=='_':
         tempchar.append(line[index])
         return STATE_ID_1
     elif line[index].isspace():
-        if ''.join(tempchar) in KEYWORD:
+        if ''.join(tempchar).strip() in KEYWORD:
             print(''.join(tempchar)+" keyword "+" line:"+str(line_num))
         else:
             print(''.join(tempchar)+" id "+" line:"+str(line_num))
@@ -87,7 +88,7 @@ def change_id_state(line,index,line_num):
         return refresh(line[index],line_num)
 
 
-def change_literal_state(line,index,line_num):
+def change_literal_state(line,index,line_num,current_state):
     logging.info("change_literal_state called    line:"+str(line)+"  index:"+str(index)+"    line_num:"+str(line_num))
 
     ch=line[index]
@@ -110,7 +111,7 @@ def change_literal_state(line,index,line_num):
         else:
             print("error in line"+str(line_num)+" \\后面的非法字符")
             tempchar.clear()
-            return STATE_END
+            return STATE_START
     if current_state==STATE_LITERAL_3:
         return refresh(line[index],line_num)
 
@@ -118,7 +119,7 @@ def change_literal_state(line,index,line_num):
 
 
 
-def change_singlequote_state(line,index,line_num):
+def change_singlequote_state(line,index,line_num,current_state):
     logging.info("change_singlequote_state called    line:"+str(line)+"  index:"+str(index)+"    line_num:"+str(line_num))
 
     ch=line[index]
@@ -147,7 +148,7 @@ def change_singlequote_state(line,index,line_num):
 
 
 
-def change_digit_state(line,index,line_num):
+def change_digit_state(line,index,line_num,current_state):
     logging.info("change_digit_state called    line:"+str(line)+"  index:"+str(index)+"    line_num:"+str(line_num))
 
     ch=line[index]
@@ -161,7 +162,7 @@ def change_digit_state(line,index,line_num):
         else:
             tempchar.append(ch)
             print(''.join(tempchar)+"   数字  line: "+str(line_num))
-            return refresh(ch)
+            return refresh(ch,line_num)
     if current_state==STATE_DIGIT_2:
         if ch.isdigit():
             tempchar.append(ch)
@@ -170,9 +171,9 @@ def change_digit_state(line,index,line_num):
             tempchar.append(ch)
             return STATE_DIGIT_3
         else:
-            tempchar.append(ch)
+            # tempchar.append(ch)
             print(''.join(tempchar)+"   数字  line: "+str(line_num))
-            return refresh(ch)
+            return refresh(ch,line_num)
     if current_state==STATE_DIGIT_3:
         if ch.isdigit():
             tempchar.append(ch)
@@ -180,10 +181,10 @@ def change_digit_state(line,index,line_num):
         else:
             tempchar.append(ch)
             print(''.join(tempchar)+"   数字  line: "+str(line_num))
-            return refresh(ch)
+            return refresh(ch,line_num)
 
 
-def change_note_state(line,index,line_num):
+def change_note_state(line,index,line_num,current_state):
     logging.info("change_note_state called    line:"+str(line)+"  index:"+str(index)+"    line_num:"+str(line_num))
 
     ch=line[index]
@@ -219,7 +220,7 @@ def refresh(ch, line_num):
     logging.info("refresh called    ch:"+str(ch)+"    line_num:"+str(line_num))
     tempchar.clear()
     tempchar.append(ch)
-    current_state == STATE_START
+    current_state = STATE_START
     if ch.isalpha():
         return STATE_ID_1
     if ch == "/":
@@ -233,10 +234,11 @@ def refresh(ch, line_num):
     if ch == "'":
         return STATE_SINGLEQUOTE_1
     if ch in SINGLE_DELIMITER:
-        print("singlequote line:" + str(line_num))
+        print(ch+"  singlequote line:" + str(line_num))
         tempchar.clear()
-        return STATE_END
+        return STATE_START
     if ch.isspace():
+        tempchar.clear()
         return STATE_START
 def main():
 

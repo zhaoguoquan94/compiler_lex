@@ -54,12 +54,15 @@ SINGLE_DELIMITER = ["+",
                     ">"
         "'",
                     ".",
-                    "="
+                    "=",
+                    ";"
 ]
 DOUBLE_DELIMITER=[
 ">=",
 "<=",
-"!="
+"!=",
+"++",
+"--"
 ]
 STATE_START=100
 # STATE_ID_1=101
