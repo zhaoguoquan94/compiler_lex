@@ -36,11 +36,11 @@ KEYWORD = ["auto",
            "volatile",
            "while",
            "do"]
-SINGLE_DELIMITER = ["+",
-                    "-",
+SINGLE_DELIMITER = [
+
                     "*",
                     "/",
-                    "!",
+
                     "#",
                     "%",
                     "&",
@@ -50,19 +50,40 @@ SINGLE_DELIMITER = ["+",
                     "}",
                     "|",
                     '"',
-                    "<",
-                    ">"
-        "'",
+                    "'",
                     ".",
-                    "=",
-                    ";"
-]
+                    ";"]
 DOUBLE_DELIMITER=[
 ">=",
 "<=",
 "!=",
 "++",
 "--"
+]
+DOUBLE_DELIMITER_FIRST=["+","-","!","<",">"]
+SIGN=[
+
+                    "*",
+                    "/",
+
+                    "#",
+                    "%",
+                    "&",
+                    "(",
+                    ")",
+                    "{",
+                    "}",
+                    "|",
+                    '"',
+                    "'",
+                    ".",
+                    ";",
+                    "+",
+                    "-",
+                    "=",
+                    "!",
+                    "<",
+                    ">"
 ]
 STATE_START=100
 # STATE_ID_1=101
@@ -83,11 +104,16 @@ STATE_DIGIT_1=114
 STATE_DIGIT_2=115
 STATE_DIGIT_3=116
 STATE_DIGIT_4=117
-STATE_SIGN=118
-STATE_END=[STATE_DIGIT_1,STATE_DIGIT_2,STATE_DIGIT_3,STATE_LITERAL_3,STATE_ID_1,STATE_SINGLEQUOTE_3]
+STATE_SIGN_1=118
+STATE_SIGN_2=120
+STATE_SIGN_3=121
+STATE_SIGN_4=122
+STATE_SIGN_5=133
+STATE_END=[STATE_DIGIT_1,STATE_DIGIT_2,STATE_DIGIT_3,STATE_LITERAL_3,STATE_ID_1,STATE_SINGLEQUOTE_3,STATE_SIGN_1,STATE_SIGN_4,STATE_SIGN_5]
 GROUP_ID=[STATE_ID_1]
 GROUP_NOTE=[STATE_NOTE_1,STATE_NOTE_2,STATE_NOTE_3,STATE_NOTE_4]
 GROUP_LITERAL=[STATE_LITERAL_1,STATE_LITERAL_2,STATE_LITERAL_3]
 GROUP_SINGLEQUOTE=[STATE_SINGLEQUOTE_1,STATE_SINGLEQUOTE_2,STATE_SINGLEQUOTE_3]
 GROUP_DIGIT=[STATE_DIGIT_1,STATE_DIGIT_2,STATE_DIGIT_3,STATE_DIGIT_4]
 STATE_REAL_END=119
+GROUP_SIGN=[STATE_SIGN_1,STATE_SIGN_2,STATE_SIGN_3,STATE_SIGN_4,STATE_SIGN_5]
